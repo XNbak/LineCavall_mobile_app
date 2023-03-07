@@ -73,7 +73,8 @@ Future<void> connectBLE() async {
           var devId = device.id;
           var existCheck =
               await DeviceFieldDatabase.instance.getRowsWhereNameMatches(devId);
-          if (existCheck[0].isEmpty) {
+          // ignore: unnecessary_null_comparison
+          if (existCheck.isEmpty) {
             var devIdInserter = devId;
             await DeviceFieldDatabase.instance.insertDeviceField(devIdInserter);
             print('database updated');

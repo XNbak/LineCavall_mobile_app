@@ -336,6 +336,8 @@ class HomePageState extends State<HomePage> {
     super.initState();
   }
 
+  var index = 1;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
