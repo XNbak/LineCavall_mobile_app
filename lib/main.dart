@@ -464,66 +464,86 @@ class InfoDevicePageState extends State<InfoDevicePage> {
     return Scaffold(
       appBar: null,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: FutureBuilder<double>(
-              future: sendLastLen(deviceId),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  var snapdat = snapshot.data!;
-                  return Center(
-                    child: Column(children: [
-                      const Padding(
-                        padding: EdgeInsets.only(
-                            top: 12.0, left: 12.0, right: 12.0, bottom: 2.0),
-                        child: Center(
-                          child: Text(
-                            'Your animals last recorded temperature was',
-                            style: TextStyle(fontSize: 22),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Center(
-                          child: Text(
-                            '$snapdat',
-                            style: const TextStyle(
-                              fontSize: 45,
-                              color: Color.fromARGB(255, 232, 170, 0),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: FutureBuilder<double>(
+                future: sendLastLen(deviceId),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    var snapdat = snapshot.data!;
+                    return Center(
+                      child: Column(children: [
+                        const Padding(
+                          padding: EdgeInsets.only(
+                              top: 12.0, left: 12.0, right: 12.0, bottom: 2.0),
+                          child: Center(
+                            child: Text(
+                              'Your animals last recorded temperature was',
+                              style: TextStyle(fontSize: 22),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                      ),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: FutureBuilder<List<MeasTableData>>(
-                              future: sendMeasTableData(deviceId),
-                              builder: ((context, snapshot) {
-                                if (snapshot.hasData) {
-                                  List<MeasTableData> members = snapshot.data!;
-                                  List<MeasTableData> lasttimes = [];
-                                  for (var i in members) {
-                                    if (i.time.isAfter(DateTime.now()
-                                        .subtract(const Duration(hours: 24)))) {
-                                      lasttimes.add(i);
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Center(
+                            child: Text(
+                              '$snapdat',
+                              style: const TextStyle(
+                                fontSize: 45,
+                                color: Color.fromARGB(255, 232, 170, 0),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 10.0),
+                            child: FutureBuilder<List<MeasTableData>>(
+                                future: sendMeasTableData(deviceId),
+                                builder: ((context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    List<MeasTableData> members =
+                                        snapshot.data!;
+                                    List<MeasTableData> lasttimes = [];
+                                    for (var i in members) {
+                                      if (i.time.isAfter(DateTime.now()
+                                          .subtract(
+                                              const Duration(hours: 24)))) {
+                                        lasttimes.add(i);
+                                      }
                                     }
-                                  }
-                                  if (members.isNotEmpty &&
-                                      lasttimes.isNotEmpty) {
-                                    return Center(
-                                      child: Column(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: SfCartesianChart(
+                                    if (members.isNotEmpty &&
+                                        lasttimes.isNotEmpty) {
+                                      return Center(
+                                        child: Column(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: SfCartesianChart(
+                                                  primaryXAxis: DateTimeAxis(),
+                                                  series: <ChartSeries>[
+                                                    LineSeries<MeasTableData,
+                                                            DateTime>(
+                                                        dataSource: lasttimes,
+                                                        xValueMapper:
+                                                            (MeasTableData data,
+                                                                    _) =>
+                                                                data.time,
+                                                        yValueMapper:
+                                                            (MeasTableData data,
+                                                                    _) =>
+                                                                data.val)
+                                                  ]),
+                                            ),
+                                            SfCartesianChart(
                                                 primaryXAxis: DateTimeAxis(),
                                                 series: <ChartSeries>[
                                                   LineSeries<MeasTableData,
                                                           DateTime>(
-                                                      dataSource: lasttimes,
+                                                      dataSource: members,
                                                       xValueMapper:
                                                           (MeasTableData data,
                                                                   _) =>
@@ -533,6 +553,17 @@ class InfoDevicePageState extends State<InfoDevicePage> {
                                                                   _) =>
                                                               data.val)
                                                 ]),
+                                          ],
+                                        ),
+                                      );
+                                    } else if (members.isNotEmpty &&
+                                        lasttimes.isEmpty) {
+                                      return Center(
+                                        child: Column(children: [
+                                          const Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text(
+                                                'No data measureed over the past 24 hours'),
                                           ),
                                           SfCartesianChart(
                                               primaryXAxis: DateTimeAxis(),
@@ -549,48 +580,24 @@ class InfoDevicePageState extends State<InfoDevicePage> {
                                                                 _) =>
                                                             data.val)
                                               ]),
-                                        ],
-                                      ),
-                                    );
-                                  } else if (members.isNotEmpty &&
-                                      lasttimes.isEmpty) {
-                                    return Center(
-                                      child: Column(children: [
-                                        const Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Text(
-                                              'No data measureed over the past 24 hours'),
-                                        ),
-                                        SfCartesianChart(
-                                            primaryXAxis: DateTimeAxis(),
-                                            series: <ChartSeries>[
-                                              LineSeries<MeasTableData,
-                                                      DateTime>(
-                                                  dataSource: members,
-                                                  xValueMapper:
-                                                      (MeasTableData data, _) =>
-                                                          data.time,
-                                                  yValueMapper:
-                                                      (MeasTableData data, _) =>
-                                                          data.val)
-                                            ]),
-                                      ]),
-                                    );
+                                        ]),
+                                      );
+                                    } else {
+                                      return const Text('No data measured');
+                                    }
                                   } else {
-                                    return const Text('No data measured');
+                                    return const Text('Loading tables...');
                                   }
-                                } else {
-                                  return const Text('Loading tables...');
-                                }
-                              })),
-                        ),
-                      )
-                    ]),
-                  );
-                } else {
-                  return const Text('Error returning lastMeas');
-                }
-              }),
+                                })),
+                          ),
+                        )
+                      ]),
+                    );
+                  } else {
+                    return const Text('Error returning lastMeas');
+                  }
+                }),
+          ),
         ),
       ),
     );
